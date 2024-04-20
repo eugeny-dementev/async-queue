@@ -1,0 +1,22 @@
+{
+  "name": "node-20-typescript-template",
+  "version": "0.0.1",
+  "description": "Template for typescript using node20 and tsconfig for node20",
+  "type": "module",
+  "scripts": {
+    "compile": "tsc --project ./tsconfig.json",
+    "watch": "tsc --watch --project ./tsconfig.json",
+    "server": "node --enable-source-maps ./built/index.js",
+    "server:dev": "nodemon ./built/index.js"
+  },
+  "keywords": [],
+  "author": "Eugeny Dementev",
+  "license": "MIT",
+  "devDependencies": {
+    "@tsconfig/node20": "^20.1.2",
+    "@types/node": "^20.11.26"
+  },
+  "dependencies": {
+    "typescript": "^5.4.2"
+  }
+}

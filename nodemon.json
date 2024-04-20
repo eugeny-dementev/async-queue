@@ -1,0 +1,11 @@
+{
+  "execMap": {
+    "js": "node --enable-source-maps"
+  },
+  "ignore": [
+    "node_modules"
+  ],
+  "watch": [
+    "built/"
+  ]
+}
