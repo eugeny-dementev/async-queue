@@ -1,22 +1,14 @@
-import { describe, test, expect } from '@jest/globals'
-
-import { Action } from './action.js';
+import { describe, test, expect } from '@jest/globals';
+import { Delay } from './utils.js';
 
 describe('Action', () => {
-  type Context = { some: string }
-  class A<C> extends Action<C> {
-    delay: number = 0
-
-    async execute(context: C): Promise<void> {
-      console.log(context);
-      return new Promise(res => setTimeout(res, this.delay))
-    };
-  }
   test('some', async () => {
-    const a = new A<Context>();
+    const a = new Delay({ delay: 10 });
 
-    await a.execute({ some: 'hello' })
+    let run = false;
 
-    expect(true).toBe(true);
+    await a.execute().then(() => run = true)
+
+    expect(run).toBe(true);
   })
 });

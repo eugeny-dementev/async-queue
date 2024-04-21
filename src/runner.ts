@@ -4,8 +4,8 @@ import { IAction } from "./types.js";
 export class QueueRunner {
   queues = new Map();
 
-  add<C>(actions: IAction<any>[], context: Partial<C>, name: string = this.getName()) {
-    const queue = new AsyncQueue<C>({ name, actions, end: () => { this.queues.delete(name) } });
+  add(actions: IAction[], context: object, name: string = this.getName()) {
+    const queue = new AsyncQueue({ name, actions, end: () => { this.queues.delete(name) } });
 
     this.queues.set(name, queue);
 

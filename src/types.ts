@@ -1,11 +1,17 @@
-export type QueueContext<C> = {
-  push: (actions: IAction<any>[]) => void
-  extend: (obj: Partial<C>) => void
+export type Branches = {
+  then: IAction[]
+  else?: IAction[]
+  err?: IAction
 };
 
-export type NextFunction<C> = (contextExtention?: C) => Promise<void>
+export type QueueContext = {
+  push: (actions: IAction[]) => void
+  extend: (obj: Partial<object>) => void
+  stop: () => void
+  err?: Error | unknown
+};
 
-export interface IAction<C> {
+export interface IAction {
   delay: number
-  execute: (context: C) => Promise<void>
+  execute: (context: any) => Promise<void>
 }

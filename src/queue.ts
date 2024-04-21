@@ -1,21 +1,25 @@
 import { IAction, QueueContext } from './types.js';
 
-export type QueueOpts<T> = {
-  actions: T[],
+export type QueueOpts = {
+  actions: IAction[],
   name: string
   end: () => void,
 }
 
-export class AsyncQueue<C> {
+export class AsyncQueue {
   name: string = 'default queue name';
-  queue: IAction<C | QueueContext<C>>[] = [];
+  queue: IAction[] = [];
   end: () => void;
-  loopAction = false;
-  context: QueueContext<C> = { push: this.push, extend: (obj: Partial<C>) => {
-    Object.assign(this.context, obj);
-  } }
 
-  constructor(opts: QueueOpts<IAction<Partial<C> | QueueContext<C>>>) {
+  loopAction = false;
+
+  context: QueueContext = {
+    push: this.push,
+    stop: () => { this.loopAction = false; },
+    extend: (obj: object) => Object.assign(this.context, obj),
+  };
+
+  constructor(opts: QueueOpts) {
     this.queue = opts.actions;
     this.name = opts.name;
     this.end = opts.end;
@@ -27,45 +31,40 @@ export class AsyncQueue<C> {
     return new Promise((res) => setTimeout(res, timeout));
   }
 
-  async run(context: Partial<C>) {
-    console.log('Queue started');
+  async run(context: object) {
+    this.loopAction = true;
+    Object.assign(this.context, context);
 
-    while (this.loopAction) {
-      if (this.queue.length === 0) {
-        this.loopAction = false;
-        console.log('Queue stopped');
+    try {
+      while (this.loopAction) {
+        if (this.queue.length === 0) {
+          this.loopAction = false;
+          console.log('Queue stopped');
 
-        this.end();
+          this.end();
 
-        return;
+          return;
+        }
+
+        const action = this.queue.shift();
+
+        await this.iterate(action!);
       }
-
-      await this.iterate(context);
+    } catch (e) {
+      console.log(`Queue(${this.name} failed`);
+      console.error(e);
     }
   }
 
-  async iterate(context: Partial<C>) {
-    const action = this.queue.shift();
-
-    if (action === undefined) {
-      console.log('No action found');
-      return;
-    }
-
+  async iterate(action: IAction) {
     console.log(`running ${action.constructor.name || 'some undefined'} action`)
 
-    action
-
-    await action.execute(Object.assign({}, context, this.context));
+    await action.execute(this.context);
 
     await this.delay(action.delay);
   }
 
-  push(actions: IAction<C | QueueContext<C>>[]) {
+  push(actions: IAction[]) {
     this.queue.unshift(...actions);
   }
-}
-
-function isObject(obj: object) {
-  return typeof obj === 'object' && obj !== null;
 }
