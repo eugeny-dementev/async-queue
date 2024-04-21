@@ -1,10 +1,11 @@
-export type QueueContext = {
-  push: (actions: IAction<QueueContext>[]) => void
+export type QueueContext<C> = {
+  push: (actions: IAction<any>[]) => void
+  extend: (obj: Partial<C>) => void
 };
 
-export type NextFunction<C extends QueueContext> = (contextExtention?: C) => void
+export type NextFunction<C> = (contextExtention?: C) => Promise<void>
 
-export interface IAction<C extends QueueContext> {
+export interface IAction<C> {
   delay: number
-  execute: (context: C, next: NextFunction<C>) => Promise<void>
+  execute: (context: C) => Promise<void>
 }
