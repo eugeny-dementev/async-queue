@@ -41,15 +41,15 @@ export class AsyncQueue {
           this.loopAction = false;
           console.log('Queue stopped');
 
-          this.end();
-
-          return;
+          break;
         }
 
         const action = this.queue.shift();
 
         await this.iterate(action!);
       }
+
+      this.end();
     } catch (e) {
       console.log(`Queue(${this.name} failed`);
       console.error(e);
