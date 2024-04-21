@@ -1,14 +1,15 @@
-import { IAction, QueueContext } from './types.js';
+import { Action } from './action.js';
+import { IAction, QueueAction, QueueContext } from './types.js';
 
 export type QueueOpts = {
-  actions: IAction[],
+  actions: QueueAction[],
   name: string
   end: () => void,
 }
 
 export class AsyncQueue {
   name: string = 'default queue name';
-  queue: IAction[] = [];
+  queue: QueueAction[] = [];
   end: () => void;
 
   loopAction = false;
@@ -44,7 +45,9 @@ export class AsyncQueue {
           break;
         }
 
-        const action = this.queue.shift();
+        const item = this.queue.shift();
+
+        const action =  this.processQueueItem(item!);
 
         await this.iterate(action!);
       }
@@ -64,7 +67,13 @@ export class AsyncQueue {
     await this.delay(action.delay);
   }
 
-  push(actions: IAction[]) {
+  push(actions: QueueAction[]) {
     this.queue.unshift(...actions);
+  }
+
+  processQueueItem(item: QueueAction) {
+    if (item instanceof Action) {
+      return item
+    } else return new (item as new (...args: any[]) => IAction);
   }
 }
