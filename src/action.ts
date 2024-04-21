@@ -7,7 +7,7 @@ type Options = {
 export abstract class Action<C> implements IAction<C> {
   delay: number = 0
 
-  constructor(opts: Options) {
+  constructor(opts: Options = {}) {
     if (opts.delay) this.delay = opts.delay;
   }
 
