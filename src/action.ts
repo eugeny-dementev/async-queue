@@ -1,6 +1,6 @@
 import { IAction, QueueContext } from "./types.js";
 
-type Options = {
+export type Options = {
   delay?: number,
 };
 
