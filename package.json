@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "compile": "tsc --project ./tsconfig.json",
+    "prepublish": "npm version minor",
     "watch": "tsc --watch --project ./tsconfig.json",
     "test": "jest"
   },
