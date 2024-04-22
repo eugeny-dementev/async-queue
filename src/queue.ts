@@ -60,7 +60,8 @@ export class AsyncQueue {
   }
 
   async iterate(action: IAction) {
-    console.log(`running ${action.constructor.name || 'some undefined'} action`)
+    const actionName = action.constructor.name || 'some undefined';
+    console.log(`Queue(${this.name}): running ${actionName} action`)
 
     await action.execute(this.context);
 

@@ -1,4 +1,4 @@
-import { IAction } from "./types.js";
+import { IAction, QueueContext } from "./types.js";
 
 type Options = {
   delay?: number,
@@ -11,5 +11,5 @@ export abstract class Action<C> implements IAction {
     if (opts.delay) this.delay = opts.delay;
   }
 
-  abstract execute(context: C): Promise<void>
+  abstract execute(context: C & QueueContext): Promise<void>
 }
