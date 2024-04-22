@@ -1,6 +1,6 @@
 {
   "name": "async-queue-runner",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Library to run in parallel extendable queue of tasks",
   "type": "module",
   "scripts": {
