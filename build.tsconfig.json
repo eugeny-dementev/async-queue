@@ -1,0 +1,10 @@
+{
+  "extends": "@tsconfig/node20/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./built",
+    "noImplicitAny": false,
+    "inlineSourceMap": false
+  },
+  "include": ["./src/*.ts"],
+  "exclude": ["./src/*.test.ts"]
+}
