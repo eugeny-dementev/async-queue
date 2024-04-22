@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./built/_cjs/",
+    "inlineSourceMap": false,
+    "moduleResolution": "Node10",
+    "module": "CommonJS"
+  },
+  "exclude": ["./src/*.test.ts"]
+}
