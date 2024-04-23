@@ -5,12 +5,15 @@
   "type": "module",
   "scripts": {
     "compile": "tsc --project ./tsconfig.json",
-    "copy:package:json": "copyfiles ./package.json ./built/ && copyfiles ./package.json ./built/_esm/ && copyfiles ./package.json ./built/_cjs/",
+    "copy:package:json": "copyfiles ./package.json ./built/ && copyfiles ./esm/package.json ./built/_esm && copyfiles ./cjs/package.json ./built/_cjs",
     "build:all": "tsc -p ./tsconfig.esm.json && tsc -p ./tsconfig.cjs.json && tsc -p ./tsconfig.types.json",
     "build": "del-cli ./built/ && npm run build:all && npm run copy:package:json",
+    "bump": "npm version minor",
     "watch": "tsc --watch --project ./tsconfig.json",
     "test": "jest"
   },
+  "main": "./_cjs/index.js",
+  "module": "./_esm/index.js",
   "exports": {
     "./*": {
       "types": "./_types/*.d.ts",
@@ -19,7 +22,7 @@
       "default": "./_esm/*.js"
     }
   },
-  "types": "./index.d.ts",
+  "types": "./_types/index.d.ts",
   "keywords": [],
   "author": "Eugeny Dementev",
   "license": "MIT",
