@@ -12,14 +12,14 @@
     "watch": "tsc --watch --project ./tsconfig.json",
     "test": "jest"
   },
-  "main": "./_cjs/index.js",
+  "main": "_cjs/index.js",
   "module": "./_esm/index.js",
   "exports": {
-    "./*": {
-      "types": "./_types/*.d.ts",
-      "require": "./_cjs/*.js",
-      "import": "./_esm/*.js",
-      "default": "./_esm/*.js"
+    ".": {
+      "types": "./_types/index.d.ts",
+      "require": "./_cjs/index.js",
+      "import": "./_esm/index.js",
+      "default": "./_esm/index.js"
     }
   },
   "types": "./_types/index.d.ts",
