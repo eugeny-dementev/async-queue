@@ -1,7 +1,7 @@
 import { AsyncQueue } from "./queue.js";
 import { IAction } from "./types.js";
 
-type EndListener = (name: string, size: number) => void;
+export type EndListener = (name: string, size: number) => void;
 
 export class QueueRunner {
   queues = new Map();
