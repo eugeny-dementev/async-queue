@@ -13,7 +13,7 @@ export const util = {
   delay(timeout: number) {
     return new Delay({ delay: timeout });
   },
-  if<C>(condition: (context: C) => Promise<boolean> | boolean, branches: Branches) {
+  if<C>(condition: (context: C) => Promise<boolean> | boolean, branches: Branches): IAction {
     class IfAction extends Action<C> {
       async execute(context: C & QueueContext): Promise<void> {
         const result = await condition(context);
@@ -28,7 +28,7 @@ export const util = {
 
     return new IfAction();
   },
-  valid<C>(validator: (context: C) => Promise<boolean> | boolean, actions: IAction[]) {
+  valid<C>(validator: (context: C) => Promise<boolean> | boolean, actions: IAction[]): IAction {
     class Validator extends Action<C> {
       async execute(context: C & QueueContext): Promise<void> {
         const valid = await validator(context);
