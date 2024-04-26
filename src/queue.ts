@@ -15,7 +15,7 @@ export class AsyncQueue {
   loopAction = false;
 
   context: QueueContext = {
-    push: this.push,
+    push: (actions: QueueAction[]) => this.push(actions),
     stop: () => { this.loopAction = false; },
     extend: (obj: object) => Object.assign(this.context, obj),
   };
@@ -24,8 +24,6 @@ export class AsyncQueue {
     this.queue = opts.actions;
     this.name = opts.name;
     this.end = opts.end;
-
-    this.push = this.push.bind(this);
   }
 
   async delay(timeout: number) {
