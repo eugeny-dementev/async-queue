@@ -53,7 +53,7 @@ export class AsyncQueue {
 
       this.end();
     } catch (e) {
-      console.log(`Queue(${this.name} failed`);
+      console.log(`Queue(${this.name}) failed`);
       console.error(e);
     }
   }
