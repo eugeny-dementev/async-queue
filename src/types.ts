@@ -16,5 +16,5 @@ export type QueueContext = {
   push: (actions: QueueAction[]) => void
   extend: (obj: Partial<object>) => void
   stop: () => void
-  name: string
+  name: () => string
 };

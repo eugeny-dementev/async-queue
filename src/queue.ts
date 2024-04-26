@@ -18,7 +18,7 @@ export class AsyncQueue {
     push: (actions: QueueAction[]) => this.push(actions),
     stop: () => { this.loopAction = false; },
     extend: (obj: object) => Object.assign(this.context, obj),
-    name: this.name,
+    name: () => this.name,
   };
 
   constructor(opts: QueueOpts) {
