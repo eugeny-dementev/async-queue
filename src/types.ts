@@ -17,4 +17,5 @@ export type QueueContext = {
   extend: (obj: Partial<object>) => void
   stop: () => void
   name: () => string
+  abort: () => void
 };

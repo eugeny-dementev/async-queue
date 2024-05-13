@@ -19,6 +19,11 @@ export class AsyncQueue {
     stop: () => { this.loopAction = false; },
     extend: (obj: object) => Object.assign(this.context, obj),
     name: () => this.name,
+    abort: () => {
+      while (this.queue.length > 0) {
+        this.queue.pop();
+      }
+    },
   };
 
   constructor(opts: QueueOpts) {
@@ -46,7 +51,7 @@ export class AsyncQueue {
 
         const item = this.queue.shift();
 
-        const action =  this.processQueueItem(item!);
+        const action = this.processQueueItem(item!);
 
         await this.iterate(action!);
       }
