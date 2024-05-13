@@ -13,3 +13,13 @@ export abstract class Action<C> implements IAction {
 
   abstract execute(context: C & QueueContext): Promise<void>
 }
+
+export function LockingAction(scope: string) {
+  abstract class LockingAction<C> extends Action<C> {
+
+  }
+
+  Object.defineProperty(LockingAction, 'name', { value: `${LockingAction.constructor.name}(${scope})` });
+
+  return LockingAction;
+}
