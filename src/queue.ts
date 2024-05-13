@@ -4,7 +4,7 @@ import { IAction, QueueAction, QueueContext } from './types.js';
 export type QueueOpts = {
   actions: QueueAction[],
   name: string
-  end: () => void,
+  end?: () => void,
 }
 
 export class AsyncQueue {
@@ -29,7 +29,7 @@ export class AsyncQueue {
   constructor(opts: QueueOpts) {
     this.queue = opts.actions;
     this.name = opts.name;
-    this.end = opts.end;
+    this.end = opts.end || (() => {});
   }
 
   async delay(timeout: number) {
