@@ -36,7 +36,7 @@ export class AsyncQueue {
     return new Promise((res) => setTimeout(res, timeout));
   }
 
-  async run(context: object) {
+  async run(context: object): Promise<void> {
     this.loopAction = true;
     Object.assign(this.context, context);
 
