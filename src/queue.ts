@@ -1,7 +1,7 @@
 import { Action } from './action.js';
 import { IAction, QueueAction, QueueContext } from './types.js';
 
-interface ILogger {
+export interface ILogger {
   info: (message: string) =>  void
   setContext: (context: string) => void
   error: (e: Error) => void
