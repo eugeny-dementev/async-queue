@@ -44,7 +44,7 @@ export class QueueRunner {
     this.locking = this.preparteLockingContext();
   }
 
-  private preparteLockingContext(): LockingContext {
+  preparteLockingContext(): LockingContext {
     const lockedScopes = new Map<string, boolean>();
     const unlockPromises = new Map<string, Array<(value?: unknown) => void>>
 
