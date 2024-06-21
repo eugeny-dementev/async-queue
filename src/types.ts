@@ -1,11 +1,17 @@
+import { LockingAction } from "./action";
+
 export interface IAction {
   delay: number
   execute: (context: any) => Promise<void>
 }
 
+export interface ILockingAction {
+  locking: boolean
+}
+
 export type ActionClass = new (...args: any[]) => IAction;
 
-export type QueueAction = IAction | ActionClass;
+export type QueueAction = IAction | ActionClass | ILockingAction;
 
 export type Branches = {
   then: QueueAction[]
