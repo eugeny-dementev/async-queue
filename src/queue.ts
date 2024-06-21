@@ -1,5 +1,20 @@
 import { Action } from './action.js';
 import { IAction, QueueAction, QueueContext } from './types.js';
+type ReversePromise = {
+  promise: Promise<unknown>
+  resolve: (value?: unknown) => void
+}
+function reversePromiseFactory() {
+  let resolve = (value?: unknown) => {};
+  const promise = new Promise((res) => {
+    resolve = res;
+  })
+
+  return {
+    promise,
+    resolve,
+  };
+}
 
 export interface ILogger {
   info: (message: string) =>  void
