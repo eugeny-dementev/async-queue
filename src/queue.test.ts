@@ -69,6 +69,9 @@ describe('Queue', () => {
       },
     });
 
+    await queue.run({});
+
+    expect(ended).toBe(true);
   });
 });
 
