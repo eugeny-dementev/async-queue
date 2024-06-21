@@ -1,32 +1,17 @@
 import { Action } from './action.js';
+import { LockingContext } from './runner.js';
 import { IAction, ILockingAction, QueueAction, QueueContext } from './types.js';
 
-type ReversePromise = {
-  promise: Promise<unknown>
-  resolve: (value?: unknown) => void
-}
-function reversePromiseFactory(): ReversePromise {
-  let resolve = (value?: unknown) => {};
-  const promise = new Promise((res) => {
-    resolve = res;
-  })
-
-  return {
-    promise,
-    resolve,
-  };
-}
-
 export interface ILogger {
-  info: (message: string) =>  void
+  info: (message: string) => void
   setContext: (context: string) => void
   error: (e: Error) => void
 }
 const logger = {
-  info(message: string){
+  info(message: string) {
     console.log(message);
   },
-  setContext(context: string) {},
+  setContext(context: string) { },
   error(e: Error) { console.error(e) },
 } as ILogger
 
@@ -35,6 +20,7 @@ export type QueueOpts = {
   name: string
   end?: () => void,
   logger?: ILogger
+  lockingContext: LockingContext,
 }
 
 export class AsyncQueue {
@@ -42,8 +28,7 @@ export class AsyncQueue {
   queue: QueueAction[] = [];
   end: () => void;
   logger: ILogger;
-  lockedScopes = new Map<string, boolean>();
-  unlockPromises = new Map<string, Array<(value?: unknown) => void>>
+  locking: LockingContext;
 
   loopAction = false;
 
@@ -62,8 +47,9 @@ export class AsyncQueue {
   constructor(opts: QueueOpts) {
     this.queue = opts.actions;
     this.name = opts.name;
-    this.end = opts.end || (() => {});
+    this.end = opts.end || (() => { });
     this.logger = opts.logger || logger;
+    this.locking = opts.lockingContext;
   }
 
   async delay(timeout: number) {
@@ -91,17 +77,17 @@ export class AsyncQueue {
 
         if (actionIsLocking) {
           const scope = (action as unknown as ILockingAction).scope as string;
-          if (this.lockedScopes.has(scope)) {
-            await this.waitForUnlock(scope);
+          if (this.locking.isLocked(scope)) {
+            await this.locking.wait(scope);
           }
 
-          this.lockedScopes.set((action as unknown as ILockingAction).scope as string, true)
+          this.locking.lock((action as unknown as ILockingAction).scope as string)
         }
 
         await this.iterate(action!);
 
         if (actionIsLocking) {
-          await this.unlock((action as unknown as ILockingAction).scope as string);
+          this.locking.unlock((action as unknown as ILockingAction).scope as string);
         }
       }
 
@@ -110,25 +96,6 @@ export class AsyncQueue {
       this.logger.info(`Queue(${this.name}) failed`);
       this.logger.error(e as Error);
     }
-  }
-
-  async unlock(scope: string): Promise<void> {
-    this.lockedScopes.delete(scope)
-
-    const promises = this.unlockPromises.get(scope) || [];
-
-    for (const resolve of promises) {
-      resolve();
-    }
-  }
-
-  async waitForUnlock(scope: string): Promise<unknown> {
-    const promises = this.unlockPromises.get(scope) || [];
-
-    const reversePromise = reversePromiseFactory();
-    promises.push(reversePromise.resolve);
-
-    return reversePromise.promise;
   }
 
   async iterate(action: IAction) {
