@@ -26,6 +26,7 @@ export class AsyncQueue {
   queue: QueueAction[] = [];
   end: () => void;
   logger: ILogger;
+  lockedScopes = new Map<string, boolean>();
 
   loopAction = false;
 
