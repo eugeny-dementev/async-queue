@@ -16,10 +16,12 @@ export abstract class Action<C> implements IAction {
 
 export abstract class LockingAction<C> extends Action<C> implements ILockingAction {
     locking = true
+    scope: string | null = null;
 }
 
 export function lockingClassFactory<C>(scope: string) {
   abstract class NoName extends LockingAction<C> {
+    scope = scope
   }
 
   Object.defineProperty(NoName, 'name', { value: `${LockingAction.constructor.name}(${scope})` });
