@@ -1,6 +1,6 @@
 {
   "name": "async-queue-runner",
-  "version": "0.11.0",
+  "version": "0.15.0",
   "description": "Library to run in parallel extendable queue of tasks",
   "scripts": {
     "compile": "tsc --project ./tsconfig.json",

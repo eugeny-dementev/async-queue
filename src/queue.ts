@@ -1,16 +1,31 @@
 import { Action } from './action.js';
 import { IAction, QueueAction, QueueContext } from './types.js';
 
+export interface ILogger {
+  info: (message: string) =>  void
+  setContext: (context: string) => void
+  error: (e: Error) => void
+}
+const logger = {
+  info(message: string){
+    console.log(message);
+  },
+  setContext(context: string) {},
+  error(e: Error) { console.error(e) },
+} as ILogger
+
 export type QueueOpts = {
   actions: QueueAction[],
   name: string
-  end: () => void,
+  end?: () => void,
+  logger?: ILogger
 }
 
 export class AsyncQueue {
   name: string = 'default queue name';
   queue: QueueAction[] = [];
   end: () => void;
+  logger: ILogger;
 
   loopAction = false;
 
@@ -19,19 +34,25 @@ export class AsyncQueue {
     stop: () => { this.loopAction = false; },
     extend: (obj: object) => Object.assign(this.context, obj),
     name: () => this.name,
+    abort: () => {
+      while (this.queue.length > 0) {
+        this.queue.pop();
+      }
+    },
   };
 
   constructor(opts: QueueOpts) {
     this.queue = opts.actions;
     this.name = opts.name;
-    this.end = opts.end;
+    this.end = opts.end || (() => {});
+    this.logger = opts.logger || logger;
   }
 
   async delay(timeout: number) {
     return new Promise((res) => setTimeout(res, timeout));
   }
 
-  async run(context: object) {
+  async run(context: object): Promise<void> {
     this.loopAction = true;
     Object.assign(this.context, context);
 
@@ -39,28 +60,29 @@ export class AsyncQueue {
       while (this.loopAction) {
         if (this.queue.length === 0) {
           this.loopAction = false;
-          console.log('Queue stopped');
+          this.logger.info(`Queue(${this.name}): stopped`);
 
           break;
         }
 
         const item = this.queue.shift();
 
-        const action =  this.processQueueItem(item!);
+        const action = this.processQueueItem(item!);
 
         await this.iterate(action!);
       }
 
       this.end();
     } catch (e) {
-      console.log(`Queue(${this.name}) failed`);
-      console.error(e);
+      this.logger.info(`Queue(${this.name}) failed`);
+      this.logger.error(e as Error);
     }
   }
 
   async iterate(action: IAction) {
     const actionName = action.constructor.name || 'some undefined';
-    console.log(`Queue(${this.name}): running ${actionName} action`)
+    this.logger.setContext(actionName);
+    this.logger.info(`Queue(${this.name}): running action`);
 
     await action.execute(this.context);
 
