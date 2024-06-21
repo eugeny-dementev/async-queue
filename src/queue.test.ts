@@ -59,7 +59,8 @@ describe('Queue', () => {
         anyAction(() => { expect(queue.lockedScopes.size).toBe(0) }),
         lockingAction(() => {
           expect(queue.lockedScopes.size).toBe(1);
-          expect(queue.lockedScopes.keys()).toStrictEqual(['browser']);
+          console.log('keys:', queue.lockedScopes.keys());
+          expect(Array.from(queue.lockedScopes.keys())).toStrictEqual(['browser']);
         }),
         anyAction(() => { expect(queue.lockedScopes.size).toBe(0) }),
       ],
