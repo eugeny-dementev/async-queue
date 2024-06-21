@@ -52,6 +52,22 @@ describe('Queue', () => {
   });
 
   test('locking', async () => {
+    let ended: boolean = false;
+
+    const queue = new AsyncQueue({
+      actions: [
+        anyAction(() => { expect(queue.lockedScopes.size).toBe(0) }),
+        lockingAction(() => {
+          expect(queue.lockedScopes.size).toBe(1);
+          expect(queue.lockedScopes.keys()).toStrictEqual(['browser']);
+        }),
+        anyAction(() => { expect(queue.lockedScopes.size).toBe(0) }),
+      ],
+      name: 'TestQueue',
+      end: () => {
+        ended = true;
+      },
+    });
 
   });
 });
