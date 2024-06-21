@@ -3,6 +3,7 @@ import { describe, test, expect } from '@jest/globals';
 import { AsyncQueue } from './queue.js';
 import { ILockingAction, QueueContext } from './types.js';
 import { Action, lockingClassFactory } from './action.js';
+import { QueueRunner } from './runner.js';
 
 function anyAction<C = null>(execute: (context: C & QueueContext) => Promise<void> | void) {
   class AnyAction extends Action<C> {
@@ -29,6 +30,9 @@ describe('Queue', () => {
     const order: string[] = [];
     let ended: boolean = false;
 
+    const runner = new QueueRunner();
+    const lockingContext = runner.preparteLockingContext();
+
     const queue = new AsyncQueue({
       actions: [
         anyAction(() => { order.push('action') }),
@@ -43,6 +47,7 @@ describe('Queue', () => {
       end: () => {
         ended = true;
       },
+      lockingContext,
     });
 
     await queue.run({});
@@ -54,20 +59,22 @@ describe('Queue', () => {
   test('locking', async () => {
     let ended: boolean = false;
 
+    const runner = new QueueRunner();
+    const lockingContext = runner.preparteLockingContext();
+
     const queue = new AsyncQueue({
       actions: [
-        anyAction(() => { expect(queue.lockedScopes.size).toBe(0) }),
+        anyAction(() => { expect(lockingContext.isLocked('browser')).toBe(false) }),
         lockingAction(() => {
-          expect(queue.lockedScopes.size).toBe(1);
-          console.log('keys:', queue.lockedScopes.keys());
-          expect(Array.from(queue.lockedScopes.keys())).toStrictEqual(['browser']);
+          expect(lockingContext.isLocked('browser')).toBe(true) 
         }),
-        anyAction(() => { expect(queue.lockedScopes.size).toBe(0) }),
+        anyAction(() => { expect(lockingContext.isLocked('browser')).toBe(false) }),
       ],
       name: 'TestQueue',
       end: () => {
         ended = true;
       },
+      lockingContext,
     });
 
     await queue.run({});
