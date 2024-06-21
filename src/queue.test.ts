@@ -2,7 +2,7 @@ import { describe, test, expect } from '@jest/globals';
 
 import { AsyncQueue } from './queue.js';
 import { QueueContext } from './types.js';
-import { Action } from './action.js';
+import { Action, lockingClassFactory } from './action.js';
 
 function anyAction<C = null>(execute: (context: C & QueueContext) => Promise<void> | void) {
   class AnyAction extends Action<C> {
@@ -14,8 +14,15 @@ function anyAction<C = null>(execute: (context: C & QueueContext) => Promise<voi
   return new AnyAction();
 }
 
+function lockingAction<C = null>(execute: (context: C & QueueContext) => Promise<void> | void) {
+  class Lock extends lockingClassFactory<C>('browser') {
+      async execute(context: C & QueueContext): Promise<void> {
+          return execute(context);
+      }
+  }
 
-const order: string[] = []; // queue should fill that array in particular order
+  return new Lock();
+}
 
 describe('Queue', () => {
   test('order', async () => {
@@ -42,6 +49,10 @@ describe('Queue', () => {
 
     expect(ended).toBe(true);
     expect(order).toStrictEqual(['action', 'action', 'action']);
+  });
+
+  test('locking', async () => {
+
   });
 });
 
