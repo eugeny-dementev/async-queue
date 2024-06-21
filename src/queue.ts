@@ -42,6 +42,7 @@ export class AsyncQueue {
   end: () => void;
   logger: ILogger;
   lockedScopes = new Map<string, boolean>();
+  unlockPromises = new Map<string, Array<(value?: unknown) => void>>
 
   loopAction = false;
 
@@ -93,6 +94,25 @@ export class AsyncQueue {
       this.logger.info(`Queue(${this.name}) failed`);
       this.logger.error(e as Error);
     }
+  }
+
+  async unlock(scope: string): Promise<void> {
+    this.lockedScopes.delete(scope)
+
+    const promises = this.unlockPromises.get(scope) || [];
+
+    for (const resolve of promises) {
+      resolve();
+    }
+  }
+
+  async waitForUnlock(scope: string): Promise<unknown> {
+    const promises = this.unlockPromises.get(scope) || [];
+
+    const reversePromise = reversePromiseFactory();
+    promises.push(reversePromise.resolve);
+
+    return reversePromise.promise;
   }
 
   async iterate(action: IAction) {
