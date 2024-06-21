@@ -19,7 +19,7 @@ export abstract class LockingAction<C> extends Action<C> implements ILockingActi
 }
 
 export function lockingClassFactory<C>(scope: string) {
-  abstract class NoName extends Action<C> {
+  abstract class NoName extends LockingAction<C> {
   }
 
   Object.defineProperty(NoName, 'name', { value: `${LockingAction.constructor.name}(${scope})` });
