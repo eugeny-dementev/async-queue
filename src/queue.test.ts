@@ -1,7 +1,7 @@
 import { describe, test, expect } from '@jest/globals';
 
 import { AsyncQueue } from './queue.js';
-import { QueueContext } from './types.js';
+import { ILockingAction, QueueContext } from './types.js';
 import { Action, lockingClassFactory } from './action.js';
 
 function anyAction<C = null>(execute: (context: C & QueueContext) => Promise<void> | void) {
@@ -14,7 +14,7 @@ function anyAction<C = null>(execute: (context: C & QueueContext) => Promise<voi
   return new AnyAction();
 }
 
-function lockingAction<C = null>(execute: (context: C & QueueContext) => Promise<void> | void) {
+function lockingAction<C = null>(execute: (context: C & QueueContext) => Promise<void> | void): ILockingAction {
   class Lock extends lockingClassFactory<C>('browser') {
       async execute(context: C & QueueContext): Promise<void> {
           return execute(context);
