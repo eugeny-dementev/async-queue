@@ -1,5 +1,6 @@
 import { Action } from './action.js';
-import { IAction, QueueAction, QueueContext } from './types.js';
+import { IAction, ILockingAction, QueueAction, QueueContext } from './types.js';
+
 type ReversePromise = {
   promise: Promise<unknown>
   resolve: (value?: unknown) => void
@@ -86,7 +87,22 @@ export class AsyncQueue {
 
         const action = this.processQueueItem(item!);
 
+        const actionIsLocking = (action as unknown as ILockingAction).locking;
+
+        if (actionIsLocking) {
+          const scope = (action as unknown as ILockingAction).scope as string;
+          if (this.lockedScopes.has(scope)) {
+            await this.waitForUnlock(scope);
+          }
+
+          this.lockedScopes.set((action as unknown as ILockingAction).scope as string, true)
+        }
+
         await this.iterate(action!);
+
+        if (actionIsLocking) {
+          await this.unlock((action as unknown as ILockingAction).scope as string);
+        }
       }
 
       this.end();
@@ -129,7 +145,7 @@ export class AsyncQueue {
     this.queue.unshift(...actions);
   }
 
-  processQueueItem(item: QueueAction) {
+  processQueueItem(item: QueueAction): IAction {
     if (item instanceof Action) {
       return item
     } else return new (item as new (...args: any[]) => IAction);
