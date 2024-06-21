@@ -1,5 +1,17 @@
 import { describe, test, expect } from '@jest/globals';
 import { Delay } from './utils.js';
+import { Action, lockingClassFactory } from './action.js';
+import { QueueContext, ILockingAction } from './types.js';
+
+function lockingAction<C = null>(execute: (context: C & QueueContext) => Promise<void> | void): ILockingAction {
+  class Lock extends lockingClassFactory<C>('browser') {
+      async execute(context: C & QueueContext): Promise<void> {
+          return execute(context);
+      }
+  }
+
+  return new Lock();
+}
 
 describe('Action', () => {
   test('some', async () => {
@@ -11,4 +23,8 @@ describe('Action', () => {
 
     expect(run).toBe(true);
   })
+
+  test('Each action should be instance of Action', async () => {
+    expect(lockingAction(() => {}) instanceof Action).toBe(true);
+  }); 
 });
