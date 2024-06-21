@@ -5,7 +5,7 @@ type ReversePromise = {
   promise: Promise<unknown>
   resolve: (value?: unknown) => void
 }
-function reversePromiseFactory() {
+function reversePromiseFactory(): ReversePromise {
   let resolve = (value?: unknown) => {};
   const promise = new Promise((res) => {
     resolve = res;
