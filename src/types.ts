@@ -7,11 +7,12 @@ export interface IAction {
 
 export interface ILockingAction {
   locking: boolean
+  scope: string | null
 }
 
 export type ActionClass = new (...args: any[]) => IAction;
 
-export type QueueAction = IAction | ActionClass | ILockingAction;
+export type QueueAction = IAction | ActionClass | Partial<ILockingAction>;
 
 export type Branches = {
   then: QueueAction[]
