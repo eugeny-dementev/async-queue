@@ -5,6 +5,12 @@ import { ILockingAction, QueueContext } from './types.js';
 import { Action, lockingClassFactory } from './action.js';
 import { QueueRunner } from './runner.js';
 
+function delay(timeout: number): Promise<unknown> {
+  return new Promise(res => {
+    setTimeout(res, timeout);
+  })
+}
+
 function anyAction<C = null>(execute: (context: C & QueueContext) => Promise<void> | void) {
   class AnyAction extends Action<C> {
     async execute(context: C & QueueContext): Promise<void> {
@@ -64,6 +70,8 @@ describe('Queue', () => {
 
     const errors: Error[] = [];
 
+    let scopedCounter = 0;
+
     const queue = new AsyncQueue({
       actions: [
         anyAction(() => {
@@ -73,12 +81,87 @@ describe('Queue', () => {
             errors.push(e as Error)
           }
         }),
-        lockingAction(() => {
+        lockingAction(async () => {
+          scopedCounter += 1;
+          await delay(50);
           try {
             expect(lockingContext.isLocked('browser')).toBe(true)
+            expect(scopedCounter).toBe(1);
           } catch (e) {
             errors.push(e as Error)
           }
+          scopedCounter -= 1;
+          await delay(50);
+        }),
+        anyAction(() => {
+          try {
+            expect(lockingContext.isLocked('browser')).toBe(false)
+          } catch (e) {
+            errors.push(e as Error)
+          }
+        }),
+      ],
+      name: 'TestQueue',
+      end: () => {
+        ended = true;
+      },
+      lockingContext,
+    });
+    const queue2 = new AsyncQueue({
+      actions: [
+        anyAction(() => {
+          try {
+            expect(lockingContext.isLocked('browser')).toBe(false)
+          } catch (e) {
+            errors.push(e as Error)
+          }
+        }),
+        lockingAction(async () => {
+          scopedCounter += 1;
+          await delay(50);
+          try {
+            expect(lockingContext.isLocked('browser')).toBe(true)
+            expect(scopedCounter).toBe(1);
+          } catch (e) {
+            errors.push(e as Error)
+          }
+          scopedCounter -= 1;
+          await delay(50);
+        }),
+        anyAction(() => {
+          try {
+            expect(lockingContext.isLocked('browser')).toBe(false)
+          } catch (e) {
+            errors.push(e as Error)
+          }
+        }),
+      ],
+      name: 'TestQueue',
+      end: () => {
+        ended = true;
+      },
+      lockingContext,
+    });
+    const queue3 = new AsyncQueue({
+      actions: [
+        anyAction(() => {
+          try {
+            expect(lockingContext.isLocked('browser')).toBe(false)
+          } catch (e) {
+            errors.push(e as Error)
+          }
+        }),
+        lockingAction(async () => {
+          scopedCounter += 1;
+          await delay(50);
+          try {
+            expect(lockingContext.isLocked('browser')).toBe(true)
+            expect(scopedCounter).toBe(1);
+          } catch (e) {
+            errors.push(e as Error)
+          }
+          scopedCounter -= 1;
+          await delay(50);
         }),
         anyAction(() => {
           try {
@@ -95,7 +178,11 @@ describe('Queue', () => {
       lockingContext,
     });
 
-    await queue.run({});
+    await Promise.all([
+      queue.run({}),
+      queue2.run({}),
+      queue3.run({}),
+    ]);
 
     if (errors.length > 0) {
       throw errors[0];
