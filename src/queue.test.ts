@@ -17,9 +17,9 @@ function anyAction<C = null>(execute: (context: C & QueueContext) => Promise<voi
 
 function lockingAction<C = null>(execute: (context: C & QueueContext) => Promise<void> | void): ILockingAction {
   class Lock extends lockingClassFactory<C>('browser') {
-      async execute(context: C & QueueContext): Promise<void> {
-          return execute(context);
-      }
+    async execute(context: C & QueueContext): Promise<void> {
+      return execute(context);
+    }
   }
 
   return new Lock();
@@ -62,13 +62,31 @@ describe('Queue', () => {
     const runner = new QueueRunner();
     const lockingContext = runner.preparteLockingContext();
 
+    const errors: Error[] = [];
+
     const queue = new AsyncQueue({
       actions: [
-        anyAction(() => { expect(lockingContext.isLocked('browser')).toBe(false) }),
-        lockingAction(() => {
-          expect(lockingContext.isLocked('browser')).toBe(true) 
+        anyAction(() => {
+          try {
+            expect(lockingContext.isLocked('browser')).toBe(false)
+          } catch (e) {
+            errors.push(e as Error)
+          }
         }),
-        anyAction(() => { expect(lockingContext.isLocked('browser')).toBe(false) }),
+        lockingAction(() => {
+          try {
+            expect(lockingContext.isLocked('browser')).toBe(true)
+          } catch (e) {
+            errors.push(e as Error)
+          }
+        }),
+        anyAction(() => {
+          try {
+            expect(lockingContext.isLocked('browser')).toBe(false)
+          } catch (e) {
+            errors.push(e as Error)
+          }
+        }),
       ],
       name: 'TestQueue',
       end: () => {
@@ -78,6 +96,10 @@ describe('Queue', () => {
     });
 
     await queue.run({});
+
+    if (errors.length > 0) {
+      throw errors[0];
+    }
 
     expect(ended).toBe(true);
   });
