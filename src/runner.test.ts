@@ -34,15 +34,23 @@ describe('Runner', () => {
       const runner = new QueueRunner();
 
       runner.addEndListener((name, size) => {
-        console.log('end event:', name, size);
-
         if (size === 1) {
-          expect(order.toString()).toEqual(['first', 'second'].toString());
+          try {
+            expect(order.toString()).toEqual(['first', 'second'].toString());
+          } catch (e) {
+            res(e)
+          }
           return
         }
 
-        expect(size).toEqual(0);
-        expect(order.toString()).toEqual(['first', 'second', 'third'].toString());
+        try {
+          expect(size).toEqual(0);
+          expect(order.toString()).toEqual(['first', 'second', 'third'].toString());
+        } catch (e) {
+          res(e)
+          return;
+        }
+
         res(null);
       });
 
