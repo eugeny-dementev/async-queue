@@ -21,7 +21,7 @@ function anyAction<C = null>(execute: (context: C & QueueContext) => Promise<voi
   return new AnyAction();
 }
 
-function lockingAction<C = null>(execute: (context: C & QueueContext) => Promise<void> | void): ILockingAction {
+function lockingAction<C = null>(execute: (context: C & QueueContext) => Promise<void>): ILockingAction {
   class Lock extends lockingClassFactory<C>('browser') {
     async execute(context: C & QueueContext): Promise<void> {
       return execute(context);
