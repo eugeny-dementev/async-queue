@@ -58,5 +58,19 @@ describe('Runner', () => {
       runner.add(testQueue2);
     });
   });
+
+  test('locking context', async () => {
+    const runner = new QueueRunner({ logger });
+    const lockingContext = runner.preparteLockingContext();
+
+    lockingContext.lock('browser');
+
+    expect(lockingContext.isLocked('browser')).toBe(true);
+
+    await Promise.all([
+      lockingContext.wait('browser'),
+      lockingContext.unlock('browser'),
+    ]);
+  });
 });
 
