@@ -45,30 +45,30 @@ export class QueueRunner {
   }
 
   preparteLockingContext(): LockingContext {
-    const lockedScopes = new Map<string, boolean>();
-    const unlockPromises = new Map<string, Array<(value?: unknown) => void>>
+    const lockedScopes = new Map<string, ReversePromise>();
 
     const unlock = (scope: string): void => {
-      lockedScopes.delete(scope)
-
-      const promises = unlockPromises.get(scope) || [];
-
-      for (const resolve of promises) {
-        resolve();
+      if (!lockedScopes.has(scope)) {
+        return;
       }
+
+
+      lockedScopes.get(scope)!.resolve();
+
+      lockedScopes.delete(scope)
     }
 
     const wait = (scope: string): Promise<unknown> => {
-      const promises = unlockPromises.get(scope) || [];
+      if (!lockedScopes.has(scope)) {
+        return Promise.resolve();
+      }
 
-      const reversePromise = reversePromiseFactory();
-      promises.push(reversePromise.resolve);
 
-      return reversePromise.promise;
+      return lockedScopes.get(scope)!.promise;
     }
 
     const lock = (scope: string): void => {
-      lockedScopes.set(scope, true);
+      lockedScopes.set(scope, reversePromiseFactory());
     }
 
     const isLocked = (scope: string): boolean => {
