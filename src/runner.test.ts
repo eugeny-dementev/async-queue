@@ -4,7 +4,7 @@ import { QueueRunner } from './runner.js';
 import { util } from './utils.js';
 import { QueueContext } from './types.js';
 import { Action } from './action.js';
-import { logger } from './queue.test.js';
+import { logger } from './testlib.js';
 
 function anyAction<C>(execute: (context: C & QueueContext) => Promise<void> | void) {
   class AnyAction extends Action<C> {
