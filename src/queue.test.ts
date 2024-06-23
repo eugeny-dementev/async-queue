@@ -1,10 +1,10 @@
-import { describe, test, expect } from '@jest/globals';
+import { describe, expect, test } from '@jest/globals';
 
-import { AsyncQueue, ILogger } from './queue.js';
-import { ILockingAction, QueueContext } from './types.js';
 import { Action, lockingClassFactory } from './action.js';
+import { AsyncQueue } from './queue.js';
 import { QueueRunner } from './runner.js';
 import { logger } from './testlib.js';
+import { ILockingAction, QueueContext } from './types.js';
 
 function delay(timeout: number): Promise<unknown> {
   return new Promise(res => {
