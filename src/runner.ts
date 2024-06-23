@@ -68,6 +68,10 @@ export class QueueRunner {
     }
 
     const lock = (scope: string): void => {
+      if (lockedScopes.has(scope)) {
+        throw new Error(`scope "${scope}" is already locked`);
+      }
+
       lockedScopes.set(scope, reversePromiseFactory());
     }
 
