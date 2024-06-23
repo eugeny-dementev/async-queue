@@ -1,6 +1,6 @@
 import { describe, test, expect } from '@jest/globals';
 
-import { AsyncQueue } from './queue.js';
+import { AsyncQueue, ILogger } from './queue.js';
 import { ILockingAction, QueueContext } from './types.js';
 import { Action, lockingClassFactory } from './action.js';
 import { QueueRunner } from './runner.js';
@@ -29,6 +29,12 @@ function lockingAction<C = null>(execute: (context: C & QueueContext) => Promise
   }
 
   return new Lock();
+}
+
+const logger: ILogger = {
+  info: function (message: string): void {},
+  setContext: function (context: string): void {},
+  error: function (e: Error): void {}
 }
 
 describe('Queue', () => {
