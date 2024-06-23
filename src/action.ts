@@ -20,6 +20,10 @@ export abstract class LockingAction<C> extends Action<C> implements ILockingActi
 }
 
 export function lockingClassFactory<C>(scope: string) {
+  if (typeof scope !== 'string') {
+    throw new TypeError('scope must be a string')
+  }
+
   abstract class NoName extends LockingAction<C> {
     scope = scope
   }
