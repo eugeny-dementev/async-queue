@@ -31,7 +31,7 @@ function lockingAction<C = null>(execute: (context: C & QueueContext) => Promise
   return new Lock();
 }
 
-const logger: ILogger = {
+export const logger: ILogger = {
   info: function (message: string): void {},
   setContext: function (context: string): void {},
   error: function (e: Error): void {}
@@ -60,6 +60,7 @@ describe('Queue', () => {
         ended = true;
       },
       lockingContext,
+      logger,
     });
 
     await queue.run({});
@@ -112,6 +113,7 @@ describe('Queue', () => {
         ended = true;
       },
       lockingContext,
+      logger,
     });
     const queue2 = new AsyncQueue({
       actions: [
@@ -147,6 +149,7 @@ describe('Queue', () => {
         ended = true;
       },
       lockingContext,
+      logger,
     });
     const queue3 = new AsyncQueue({
       actions: [
@@ -182,6 +185,7 @@ describe('Queue', () => {
         ended = true;
       },
       lockingContext,
+      logger,
     });
 
     await Promise.all([

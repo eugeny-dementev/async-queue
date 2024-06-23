@@ -4,6 +4,7 @@ import { QueueRunner } from './runner.js';
 import { util } from './utils.js';
 import { QueueContext } from './types.js';
 import { Action } from './action.js';
+import { logger } from './queue.test.js';
 
 function anyAction<C>(execute: (context: C & QueueContext) => Promise<void> | void) {
   class AnyAction extends Action<C> {
@@ -31,7 +32,7 @@ const testQueue2 = [
 describe('Runner', () => {
   test('order', async () => {
     return new Promise((res) => {
-      const runner = new QueueRunner();
+      const runner = new QueueRunner({ logger });
 
       runner.addEndListener((name, size) => {
         if (size === 1) {
