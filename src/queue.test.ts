@@ -6,12 +6,6 @@ import { QueueRunner } from './runner.js';
 import { logger } from './testlib.js';
 import { ILockingAction, QueueContext } from './types.js';
 
-function delay(timeout: number): Promise<unknown> {
-  return new Promise(res => {
-    setTimeout(res, timeout);
-  })
-}
-
 function anyAction<C = null>(execute: (context: C & QueueContext) => Promise<void> | void) {
   class AnyAction extends Action<C> {
     async execute(context: C & QueueContext): Promise<void> {
@@ -85,7 +79,6 @@ describe('Queue', () => {
         }),
         lockingAction(async () => {
           scopedCounter += 1;
-          await delay(50);
           try {
             expect(lockingContext.isLocked('browser')).toBe(true)
             expect(scopedCounter).toBe(1);
@@ -93,7 +86,6 @@ describe('Queue', () => {
             errors.push(e as Error)
           }
           scopedCounter -= 1;
-          await delay(50);
         }),
         anyAction(() => {
           try {
@@ -121,7 +113,6 @@ describe('Queue', () => {
         }),
         lockingAction(async () => {
           scopedCounter += 1;
-          await delay(50);
           try {
             expect(lockingContext.isLocked('browser')).toBe(true)
             expect(scopedCounter).toBe(1);
@@ -129,7 +120,6 @@ describe('Queue', () => {
             errors.push(e as Error)
           }
           scopedCounter -= 1;
-          await delay(50);
         }),
         anyAction(() => {
           try {
@@ -157,7 +147,6 @@ describe('Queue', () => {
         }),
         lockingAction(async () => {
           scopedCounter += 1;
-          await delay(50);
           try {
             expect(lockingContext.isLocked('browser')).toBe(true)
             expect(scopedCounter).toBe(1);
@@ -165,7 +154,6 @@ describe('Queue', () => {
             errors.push(e as Error)
           }
           scopedCounter -= 1;
-          await delay(50);
         }),
         anyAction(() => {
           try {
