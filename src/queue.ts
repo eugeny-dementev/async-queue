@@ -28,7 +28,7 @@ export class AsyncQueue {
   queue: QueueAction[] = [];
   end: () => void;
   logger: ILogger;
-  locking: LockingContext;
+  locker: LockingContext;
 
   loopAction = false;
 
@@ -49,7 +49,7 @@ export class AsyncQueue {
     this.name = opts.name;
     this.end = opts.end || (() => { });
     this.logger = opts.logger || logger;
-    this.locking = opts.lockingContext;
+    this.locker = opts.lockingContext;
   }
 
   async delay(timeout: number) {
@@ -77,17 +77,17 @@ export class AsyncQueue {
 
         if (actionIsLocking) {
           const scope = (action as unknown as ILockingAction).scope as string;
-          if (this.locking.isLocked(scope)) {
-            await this.locking.wait(scope);
+          if (this.locker.isLocked(scope)) {
+            await this.locker.wait(scope);
           }
 
-          this.locking.lock((action as unknown as ILockingAction).scope as string)
+          this.locker.lock((action as unknown as ILockingAction).scope as string)
         }
 
         await this.iterate(action!);
 
         if (actionIsLocking) {
-          this.locking.unlock((action as unknown as ILockingAction).scope as string);
+          this.locker.unlock((action as unknown as ILockingAction).scope as string);
         }
       }
 
