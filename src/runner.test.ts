@@ -16,7 +16,6 @@ function anyAction<C>(execute: (context: C & QueueContext) => Promise<void> | vo
   return new AnyAction();
 }
 
-
 const order: string[] = []; // queue should fill that array in particular order
 
 const testQueue = [
