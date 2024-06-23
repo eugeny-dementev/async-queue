@@ -72,18 +72,22 @@ export class AsyncQueue {
         const item = this.queue.shift();
 
         const action = this.processQueueItem(item!);
+        const actionName = action.constructor.name || 'some undefined';
+        this.logger.setContext(actionName);
 
         const isLocking = (action as unknown as ILockingAction).locking;
         const scope = (action as unknown as ILockingAction).scope as string;
 
         if (isLocking) {
           if (this.locker.isLocked(scope)) {
+            this.logger.info(`Queue(${this.name}): waiting for scope to unlock`);
             await this.locker.wait(scope);
           }
 
           this.locker.lock(scope)
         }
 
+        this.logger.info(`Queue(${this.name}): running action`);
         await this.iterate(action!);
 
         if (isLocking) {
@@ -99,10 +103,6 @@ export class AsyncQueue {
   }
 
   async iterate(action: IAction) {
-    const actionName = action.constructor.name || 'some undefined';
-    this.logger.setContext(actionName);
-    this.logger.info(`Queue(${this.name}): running action`);
-
     await action.execute(this.context);
 
     await this.delay(action.delay);
