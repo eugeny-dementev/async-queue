@@ -73,21 +73,21 @@ export class AsyncQueue {
 
         const action = this.processQueueItem(item!);
 
-        const actionIsLocking = (action as unknown as ILockingAction).locking;
+        const isLocking = (action as unknown as ILockingAction).locking;
+        const scope = (action as unknown as ILockingAction).scope as string;
 
-        if (actionIsLocking) {
-          const scope = (action as unknown as ILockingAction).scope as string;
+        if (isLocking) {
           if (this.locker.isLocked(scope)) {
             await this.locker.wait(scope);
           }
 
-          this.locker.lock((action as unknown as ILockingAction).scope as string)
+          this.locker.lock(scope)
         }
 
         await this.iterate(action!);
 
-        if (actionIsLocking) {
-          this.locker.unlock((action as unknown as ILockingAction).scope as string);
+        if (isLocking) {
+          this.locker.unlock(scope);
         }
       }
 
