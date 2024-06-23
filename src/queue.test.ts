@@ -4,6 +4,7 @@ import { AsyncQueue, ILogger } from './queue.js';
 import { ILockingAction, QueueContext } from './types.js';
 import { Action, lockingClassFactory } from './action.js';
 import { QueueRunner } from './runner.js';
+import { logger } from './testlib.js';
 
 function delay(timeout: number): Promise<unknown> {
   return new Promise(res => {
@@ -29,12 +30,6 @@ function lockingAction<C = null>(execute: (context: C & QueueContext) => Promise
   }
 
   return new Lock();
-}
-
-export const logger: ILogger = {
-  info: function (message: string): void {},
-  setContext: function (context: string): void {},
-  error: function (e: Error): void {}
 }
 
 describe('Queue', () => {
