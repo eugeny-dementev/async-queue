@@ -9,6 +9,12 @@ export class Delay extends Action<null> {
   }
 }
 
+export class Abort extends Action<null> {
+  async execute(context: QueueContext): Promise<void> {
+    context.abort();
+  }
+}
+
 export const util = {
   delay(timeout: number) {
     return new Delay({ delay: timeout });
@@ -40,5 +46,8 @@ export const util = {
     }
 
     return new Validator();
+  },
+  abort() {
+    return new Abort();
   },
 }
