@@ -16,21 +16,21 @@ function anyAction<C>(execute: (context: C & QueueContext) => Promise<void> | vo
   return new AnyAction();
 }
 
-const order: string[] = []; // queue should fill that array in particular order
-
-const testQueue = [
-  util.delay(10),
-  anyAction(() => { order.push('second') }),
-];
-const testQueue2 = [
-  anyAction(() => { order.push('first') }),
-  util.delay(15),
-  anyAction(() => { order.push('third') }),
-];
-
 describe('Runner', () => {
   test('order', async () => {
-    return new Promise((res) => {
+    const order: string[] = []; // queue should fill that array in particular order
+
+    const testQueue = [
+      util.delay(10),
+      anyAction(() => { order.push('second') }),
+    ];
+    const testQueue2 = [
+      anyAction(() => { order.push('first') }),
+      util.delay(15),
+      anyAction(() => { order.push('third') }),
+    ];
+
+    return new Promise((res, rej) => {
       const runner = new QueueRunner({ logger });
 
       runner.addEndListener((name, size) => {
