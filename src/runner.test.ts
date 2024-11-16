@@ -72,5 +72,33 @@ describe('Runner', () => {
       lockingContext.unlock('browser'),
     ]);
   });
+
+  test('should abort queue if util.abort is used', async () => {
+    const order: string[] = []; // queue should fill that array in particular order
+
+    const testQueue = [
+      anyAction(() => { order.push('first') }),
+      anyAction(() => { order.push('second') }),
+      util.abort,
+      anyAction(() => { order.push('third') }),
+    ];
+
+    return new Promise((res, rej) => {
+      const runner = new QueueRunner({ logger });
+
+      runner.addEndListener((name, size) => {
+        try {
+          expect(order.toString()).toEqual(['first', 'second'].toString());
+        } catch (e) {
+          rej(e)
+          return;
+        }
+
+        res(null);
+      });
+
+      runner.add(testQueue);
+    });
+  });
 });
 
