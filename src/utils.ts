@@ -47,7 +47,5 @@ export const util = {
 
     return new Validator();
   },
-  abort() {
-    return new Abort();
-  },
+  abort: new Abort(),
 }
