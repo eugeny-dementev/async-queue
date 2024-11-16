@@ -38,7 +38,7 @@ describe('Runner', () => {
           try {
             expect(order.toString()).toEqual(['first', 'second'].toString());
           } catch (e) {
-            res(e)
+            rej(e)
           }
           return
         }
@@ -47,7 +47,7 @@ describe('Runner', () => {
           expect(size).toEqual(0);
           expect(order.toString()).toEqual(['first', 'second', 'third'].toString());
         } catch (e) {
-          res(e)
+          rej(e)
           return;
         }
 
