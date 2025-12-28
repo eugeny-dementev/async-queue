@@ -34,7 +34,6 @@ export class AsyncQueue {
 
   context: QueueContext = {
     push: (actions: QueueAction[]) => this.push(actions),
-    stop: () => { this.loopAction = false; },
     extend: (obj: object) => Object.assign(this.context, obj),
     name: () => this.name,
     abort: () => {

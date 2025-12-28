@@ -238,31 +238,6 @@ describe('Queue', () => {
     expect(seen).toStrictEqual(['QueueAlpha-alpha']);
   });
 
-  test('context stop ends the queue after the current action', async () => {
-    const order: string[] = [];
-
-    const runner = new QueueRunner();
-    const lockingContext = runner.preparteLockingContext();
-
-    const queue = new AsyncQueue({
-      actions: [
-        anyAction(({ stop }) => {
-          order.push('first');
-          stop();
-        }),
-        anyAction(() => { order.push('second') }),
-      ],
-      name: 'TestQueue',
-      end: () => {},
-      lockingContext,
-      logger,
-    });
-
-    await queue.run({});
-
-    expect(order).toStrictEqual(['first']);
-  });
-
   test('context abort clears remaining actions', async () => {
     const order: string[] = [];
 
@@ -316,4 +291,3 @@ describe('Queue', () => {
     expect(order).toStrictEqual(['class', 'instance']);
   });
 });
-
