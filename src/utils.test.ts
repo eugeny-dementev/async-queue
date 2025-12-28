@@ -75,6 +75,71 @@ describe('util', () => {
     expect(order).toStrictEqual(['else', 'after']);
   });
 
+  test('if supports action classes in branches', async () => {
+    const order: string[] = [];
+    const runner = new QueueRunner();
+    const lockingContext = runner.preparteLockingContext();
+
+    const ThenAction = class extends Action<QueueContext> {
+      async execute(): Promise<void> {
+        order.push('then');
+      }
+    };
+    const ElseAction = class extends Action<QueueContext> {
+      async execute(): Promise<void> {
+        order.push('else');
+      }
+    };
+    const AfterAction = class extends Action<QueueContext> {
+      async execute(): Promise<void> {
+        order.push('after');
+      }
+    };
+
+    const queue = new AsyncQueue({
+      actions: [
+        util.if<{ flag: boolean }>((context) => context.flag, {
+          then: [ThenAction],
+          else: [ElseAction],
+        }),
+        AfterAction,
+      ],
+      name: 'TestQueue',
+      end: () => {},
+      lockingContext,
+      logger,
+    });
+
+    await queue.run({ flag: true });
+
+    expect(order).toStrictEqual(['then', 'after']);
+  });
+
+  test('if without else leaves the queue untouched when false', async () => {
+    const order: string[] = [];
+    const runner = new QueueRunner();
+    const lockingContext = runner.preparteLockingContext();
+
+    const queue = new AsyncQueue({
+      actions: [
+        util.if<{ flag: boolean }>((context) => context.flag, {
+          then: [
+            anyAction(() => { order.push('then') }),
+          ],
+        }),
+        anyAction(() => { order.push('after') }),
+      ],
+      name: 'TestQueue',
+      end: () => {},
+      lockingContext,
+      logger,
+    });
+
+    await queue.run({ flag: false });
+
+    expect(order).toStrictEqual(['after']);
+  });
+
   test('valid pushes actions only when validator passes', async () => {
     const order: string[] = [];
     const runner = new QueueRunner();
