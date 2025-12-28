@@ -183,6 +183,137 @@ describe('Queue', () => {
 
     expect(ended).toBe(true);
   });
-});
 
+  test('context push inserts actions before the remaining queue', async () => {
+    const order: string[] = [];
+
+    const runner = new QueueRunner();
+    const lockingContext = runner.preparteLockingContext();
+
+    const queue = new AsyncQueue({
+      actions: [
+        anyAction(({ push }) => {
+          order.push('first');
+          push([
+            anyAction(() => { order.push('pushed-1') }),
+            anyAction(() => { order.push('pushed-2') }),
+          ]);
+        }),
+        anyAction(() => { order.push('second') }),
+      ],
+      name: 'TestQueue',
+      end: () => {},
+      lockingContext,
+      logger,
+    });
+
+    await queue.run({});
+
+    expect(order).toStrictEqual(['first', 'pushed-1', 'pushed-2', 'second']);
+  });
+
+  test('context extend and name are available to actions', async () => {
+    const seen: string[] = [];
+
+    const runner = new QueueRunner();
+    const lockingContext = runner.preparteLockingContext();
+
+    const queue = new AsyncQueue({
+      actions: [
+        anyAction(({ extend }) => {
+          extend({ tag: 'alpha' });
+        }),
+        anyAction<{ tag: string }>(({ name, tag }) => {
+          seen.push(`${name()}-${tag}`);
+        }),
+      ],
+      name: 'QueueAlpha',
+      end: () => {},
+      lockingContext,
+      logger,
+    });
+
+    await queue.run({});
+
+    expect(seen).toStrictEqual(['QueueAlpha-alpha']);
+  });
+
+  test('context stop ends the queue after the current action', async () => {
+    const order: string[] = [];
+
+    const runner = new QueueRunner();
+    const lockingContext = runner.preparteLockingContext();
+
+    const queue = new AsyncQueue({
+      actions: [
+        anyAction(({ stop }) => {
+          order.push('first');
+          stop();
+        }),
+        anyAction(() => { order.push('second') }),
+      ],
+      name: 'TestQueue',
+      end: () => {},
+      lockingContext,
+      logger,
+    });
+
+    await queue.run({});
+
+    expect(order).toStrictEqual(['first']);
+  });
+
+  test('context abort clears remaining actions', async () => {
+    const order: string[] = [];
+
+    const runner = new QueueRunner();
+    const lockingContext = runner.preparteLockingContext();
+
+    const queue = new AsyncQueue({
+      actions: [
+        anyAction(({ abort }) => {
+          order.push('first');
+          abort();
+        }),
+        anyAction(() => { order.push('second') }),
+      ],
+      name: 'TestQueue',
+      end: () => {},
+      lockingContext,
+      logger,
+    });
+
+    await queue.run({});
+
+    expect(order).toStrictEqual(['first']);
+  });
+
+  test('queue accepts action classes as items', async () => {
+    const order: string[] = [];
+
+    class ClassAction extends Action<QueueContext> {
+      async execute(_context: QueueContext): Promise<void> {
+        order.push('class');
+      }
+    }
+
+    const runner = new QueueRunner();
+    const lockingContext = runner.preparteLockingContext();
+
+    const queue = new AsyncQueue({
+      actions: [
+        ClassAction,
+        anyAction(() => { order.push('instance') }),
+      ],
+      name: 'TestQueue',
+      end: () => {},
+      lockingContext,
+      logger,
+    });
+
+    await queue.run({});
+
+    expect(order).toStrictEqual(['class', 'instance']);
+  });
+});
 

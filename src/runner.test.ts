@@ -34,17 +34,11 @@ describe('Runner', () => {
       const runner = new QueueRunner({ logger });
 
       runner.addEndListener((name, size) => {
-        if (size === 1) {
-          try {
-            expect(order.toString()).toEqual(['first', 'second'].toString());
-          } catch (e) {
-            rej(e)
-          }
-          return
+        if (size !== 0) {
+          return;
         }
 
         try {
-          expect(size).toEqual(0);
           expect(order.toString()).toEqual(['first', 'second', 'third'].toString());
         } catch (e) {
           rej(e)
@@ -100,5 +94,31 @@ describe('Runner', () => {
       runner.add(testQueue);
     });
   });
-});
 
+  test('add passes context and uses provided name', async () => {
+    const seen: string[] = [];
+
+    return new Promise((res, rej) => {
+      const runner = new QueueRunner({ logger });
+
+      runner.addEndListener((name, size) => {
+        try {
+          expect(name).toBe('named-queue');
+          expect(size).toBe(0);
+          expect(seen).toStrictEqual(['named-queue-ok']);
+        } catch (e) {
+          rej(e)
+          return;
+        }
+
+        res(null);
+      });
+
+      runner.add([
+        anyAction<{ tag: string }>(({ tag, name }) => {
+          seen.push(`${name()}-${tag}`);
+        }),
+      ], { tag: 'ok' }, 'named-queue');
+    });
+  });
+});

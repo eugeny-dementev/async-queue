@@ -26,5 +26,23 @@ describe('Action', () => {
 
   test('Each action should be instance of Action', async () => {
     expect(lockingAction(() => {}) instanceof Action).toBe(true);
-  }); 
+  });
+
+  test('lockingClassFactory throws when scope is not a string', () => {
+    expect(() => lockingClassFactory(123 as unknown as string)).toThrow(TypeError);
+  });
+
+  test('lockingClassFactory sets scope and locking flag', async () => {
+    class ScopedAction extends lockingClassFactory<Record<string, never>>('browser') {
+      async execute(_context: QueueContext): Promise<void> {
+        return Promise.resolve();
+      }
+    }
+
+    const instance = new ScopedAction();
+
+    expect(instance.locking).toBe(true);
+    expect(instance.scope).toBe('browser');
+    expect(instance instanceof Action).toBe(true);
+  });
 });
