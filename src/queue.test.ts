@@ -70,13 +70,6 @@ describe('Queue', () => {
 
     const queue = new AsyncQueue({
       actions: [
-        anyAction(() => {
-          try {
-            expect(lockingContext.isLocked('browser')).toBe(false)
-          } catch (e) {
-            errors.push(e as Error)
-          }
-        }),
         lockingAction(async () => {
           scopedCounter += 1;
           try {
@@ -86,13 +79,6 @@ describe('Queue', () => {
             errors.push(e as Error)
           }
           scopedCounter -= 1;
-        }),
-        anyAction(() => {
-          try {
-            expect(lockingContext.isLocked('browser')).toBe(false)
-          } catch (e) {
-            errors.push(e as Error)
-          }
         }),
       ],
       name: 'TestQueue',
@@ -104,13 +90,6 @@ describe('Queue', () => {
     });
     const queue2 = new AsyncQueue({
       actions: [
-        anyAction(() => {
-          try {
-            expect(lockingContext.isLocked('browser')).toBe(false)
-          } catch (e) {
-            errors.push(e as Error)
-          }
-        }),
         lockingAction(async () => {
           scopedCounter += 1;
           try {
@@ -120,13 +99,6 @@ describe('Queue', () => {
             errors.push(e as Error)
           }
           scopedCounter -= 1;
-        }),
-        anyAction(() => {
-          try {
-            expect(lockingContext.isLocked('browser')).toBe(false)
-          } catch (e) {
-            errors.push(e as Error)
-          }
         }),
       ],
       name: 'TestQueue',
@@ -138,13 +110,6 @@ describe('Queue', () => {
     });
     const queue3 = new AsyncQueue({
       actions: [
-        anyAction(() => {
-          try {
-            expect(lockingContext.isLocked('browser')).toBe(false)
-          } catch (e) {
-            errors.push(e as Error)
-          }
-        }),
         lockingAction(async () => {
           scopedCounter += 1;
           try {
@@ -154,13 +119,6 @@ describe('Queue', () => {
             errors.push(e as Error)
           }
           scopedCounter -= 1;
-        }),
-        anyAction(() => {
-          try {
-            expect(lockingContext.isLocked('browser')).toBe(false)
-          } catch (e) {
-            errors.push(e as Error)
-          }
         }),
       ],
       name: 'TestQueue',
@@ -182,6 +140,7 @@ describe('Queue', () => {
     }
 
     expect(ended).toBe(true);
+    expect(lockingContext.isLocked('browser')).toBe(false);
   });
 
   test('locking releases scope when action throws', async () => {

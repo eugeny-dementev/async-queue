@@ -1,6 +1,8 @@
 import { Action } from './action.js';
-import { LockingContext } from './runner.js';
-import { IAction, ILockingAction, QueueAction, QueueContext } from './types.js';
+import { LockingContext } from './locking.js';
+import { QueueContextImpl } from './queue-context.js';
+import { QueueExecutor } from './queue-executor.js';
+import { IAction, QueueAction } from './types.js';
 
 export interface ILogger {
   info: (message: string) => void
@@ -28,27 +30,24 @@ export class AsyncQueue {
   queue: QueueAction[] = [];
   end: () => void;
   logger: ILogger;
-  locker: LockingContext;
-
-  loopAction = false;
-
-  context: QueueContext = {
-    push: (actions: QueueAction[]) => this.push(actions),
-    extend: (obj: object) => Object.assign(this.context, obj),
-    name: () => this.name,
-    abort: () => {
-      while (this.queue.length > 0) {
-        this.queue.pop();
-      }
-    },
-  };
+  lockManager: LockingContext;
+  context: QueueContextImpl;
 
   constructor(opts: QueueOpts) {
     this.queue = opts.actions;
     this.name = opts.name;
     this.end = opts.end || (() => { });
     this.logger = opts.logger || logger;
-    this.locker = opts.lockingContext;
+    this.lockManager = opts.lockingContext;
+    this.context = new QueueContextImpl({
+      push: (actions: QueueAction[]) => this.push(actions),
+      name: () => this.name,
+      abort: () => {
+        while (this.queue.length > 0) {
+          this.queue.pop();
+        }
+      },
+    });
   }
 
   async delay(timeout: number) {
@@ -56,53 +55,19 @@ export class AsyncQueue {
   }
 
   async run(context: object): Promise<void> {
-    this.loopAction = true;
-    Object.assign(this.context, context);
+    const executor = new QueueExecutor({
+      name: this.name,
+      queue: this.queue,
+      logger: this.logger,
+      lockManager: this.lockManager,
+      context: this.context,
+      end: this.end,
+      processQueueItem: (item) => this.processQueueItem(item),
+      iterate: (action) => this.iterate(action),
+      handleActionError: (action, error) => this.handleActionError(action, error),
+    });
 
-    try {
-      while (this.loopAction) {
-        if (this.queue.length === 0) {
-          this.loopAction = false;
-          this.logger.info(`Queue(${this.name}): stopped`);
-
-          break;
-        }
-
-        const item = this.queue.shift();
-
-        const action = this.processQueueItem(item!);
-        const actionName = action.constructor.name || 'some undefined';
-        this.logger.setContext(actionName);
-
-        const isLocking = (action as unknown as ILockingAction).locking;
-        const scope = (action as unknown as ILockingAction).scope as string;
-
-        if (isLocking) {
-          if (this.locker.isLocked(scope)) {
-            this.logger.info(`Queue(${this.name}): waiting for scope to unlock`);
-            await this.locker.wait(scope);
-          }
-
-          this.locker.lock(scope)
-        }
-
-        this.logger.info(`Queue(${this.name}): running action`);
-        try {
-          await this.iterate(action!);
-        } catch (e) {
-          await this.handleActionError(action!, e);
-        } finally {
-          if (isLocking) {
-            this.locker.unlock(scope);
-          }
-        }
-      }
-
-      this.end();
-    } catch (e) {
-      this.logger.info(`Queue(${this.name}) failed`);
-      this.logger.error(e as Error);
-    }
+    await executor.run(context);
   }
 
   async iterate(action: IAction) {

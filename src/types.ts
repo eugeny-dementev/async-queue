@@ -1,5 +1,3 @@
-import { LockingAction } from "./action";
-
 export interface IAction {
   delay: number
   execute: (context: any) => Promise<void>

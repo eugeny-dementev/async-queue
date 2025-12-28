@@ -1,4 +1,5 @@
 import { AsyncQueue, ILogger } from "./queue.js";
+import { LockManager, LockingContext as LockingContextType } from "./locking.js";
 import { QueueAction } from "./types.js";
 
 export type EndListener = (name: string, size: number) => void;
@@ -7,28 +8,7 @@ export type RunnerOpts = {
   logger?: ILogger
 }
 
-type ReversePromise = {
-  promise: Promise<unknown>
-  resolve: (value?: unknown) => void
-}
-function reversePromiseFactory(): ReversePromise {
-  let resolve = (value?: unknown) => { };
-  const promise = new Promise((res) => {
-    resolve = res;
-  })
-
-  return {
-    promise,
-    resolve,
-  };
-}
-
-export type LockingContext = {
-  isLocked: (scope: string) => boolean,
-  lock: (scope: string) => void,
-  unlock: (scope: string) => void,
-  wait: (scope: string) => Promise<unknown>,
-}
+export type LockingContext = LockingContextType;
 
 export class QueueRunner {
   queues = new Map();
@@ -45,46 +25,7 @@ export class QueueRunner {
   }
 
   preparteLockingContext(): LockingContext {
-    const lockedScopes = new Map<string, ReversePromise>();
-
-    const unlock = (scope: string): void => {
-      if (!lockedScopes.has(scope)) {
-        return;
-      }
-
-
-      lockedScopes.get(scope)!.resolve();
-
-      lockedScopes.delete(scope)
-    }
-
-    const wait = (scope: string): Promise<unknown> => {
-      if (!lockedScopes.has(scope)) {
-        return Promise.resolve();
-      }
-
-
-      return lockedScopes.get(scope)!.promise;
-    }
-
-    const lock = (scope: string): void => {
-      if (lockedScopes.has(scope)) {
-        throw new Error(`scope "${scope}" is already locked`);
-      }
-
-      lockedScopes.set(scope, reversePromiseFactory());
-    }
-
-    const isLocked = (scope: string): boolean => {
-      return lockedScopes.has(scope);
-    }
-
-    return {
-      isLocked,
-      lock,
-      unlock,
-      wait,
-    }
+    return new LockManager();
   }
 
   add(actions: QueueAction[], context: object = {}, name: string = this.getName()) {
