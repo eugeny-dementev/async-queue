@@ -4,7 +4,7 @@
   "description": "Library to run in parallel extendable queue of tasks",
   "scripts": {
     "compile": "tsc --project ./tsconfig.json",
-    "copy:package:json": "copyfiles ./package.json ./built/ && copyfiles ./_esm/* ./built && copyfiles ./_cjs/* ./built",
+    "copy:package:json": "copyfiles ./package.json ./README.md ./built/ && copyfiles ./_esm/* ./built && copyfiles ./_cjs/* ./built",
     "build:all": "tsc -p ./tsconfig.esm.json && tsc -p ./tsconfig.cjs.json && tsc -p ./tsconfig.types.json",
     "build": "del-cli ./built/ && npm run build:all && npm run copy:package:json",
     "bump": "npm version minor",
