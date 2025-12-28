@@ -1,6 +1,6 @@
 {
   "name": "async-queue-runner",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Library to run in parallel extendable queue of tasks",
   "scripts": {
     "compile": "tsc --project ./tsconfig.json",
@@ -22,7 +22,18 @@
     }
   },
   "types": "./_types/index.d.ts",
-  "keywords": [],
+  "keywords": [
+    "async",
+    "queue",
+    "task-queue",
+    "runner",
+    "workflow",
+    "jobs",
+    "locking",
+    "actions",
+    "typescript",
+    "node"
+  ],
   "author": "Eugeny Dementev",
   "license": "MIT",
   "devDependencies": {
