@@ -87,10 +87,14 @@ export class AsyncQueue {
         }
 
         this.logger.info(`Queue(${this.name}): running action`);
-        await this.iterate(action!);
-
-        if (isLocking) {
-          this.locker.unlock(scope);
+        try {
+          await this.iterate(action!);
+        } catch (e) {
+          await this.handleActionError(action!, e);
+        } finally {
+          if (isLocking) {
+            this.locker.unlock(scope);
+          }
         }
       }
 
@@ -105,6 +109,18 @@ export class AsyncQueue {
     await action.execute(this.context);
 
     await this.delay(action.delay);
+  }
+
+  async handleActionError(action: IAction, error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+
+    try {
+      await action.onError(err, this.context);
+    } catch (handlerError) {
+      this.logger.info(`Queue(${this.name}) onError failed`);
+      this.logger.error(handlerError as Error);
+      this.context.abort();
+    }
   }
 
   push(actions: QueueAction[]) {

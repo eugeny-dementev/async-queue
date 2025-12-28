@@ -12,6 +12,16 @@ export abstract class Action<C> implements IAction {
   }
 
   abstract execute(context: C & QueueContext): Promise<void>
+
+  async onError(error: Error, context: QueueContext): Promise<void> {
+    const logger = (context as { logger?: { error?: (e: Error) => void } }).logger;
+
+    if (typeof logger?.error === 'function') {
+      logger.error(error);
+    }
+
+    context.abort();
+  }
 }
 
 export abstract class LockingAction<C> extends Action<C> implements ILockingAction {

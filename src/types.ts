@@ -3,6 +3,7 @@ import { LockingAction } from "./action";
 export interface IAction {
   delay: number
   execute: (context: any) => Promise<void>
+  onError: (error: Error, context: QueueContext) => Promise<void> | void
 }
 
 export interface ILockingAction {

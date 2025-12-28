@@ -184,6 +184,34 @@ describe('Queue', () => {
     expect(ended).toBe(true);
   });
 
+  test('locking releases scope when action throws', async () => {
+    let ended: boolean = false;
+
+    const runner = new QueueRunner();
+    const lockingContext = runner.preparteLockingContext();
+
+    const queue = new AsyncQueue({
+      actions: [
+        lockingAction(async () => {
+          throw new Error('boom');
+        }),
+      ],
+      name: 'TestQueue',
+      end: () => {
+        ended = true;
+      },
+      lockingContext,
+      logger,
+    });
+
+    await queue.run({
+      logger: { error: (_e: Error) => {} },
+    });
+
+    expect(lockingContext.isLocked('browser')).toBe(false);
+    expect(ended).toBe(true);
+  });
+
   test('context push inserts actions before the remaining queue', async () => {
     const order: string[] = [];
 
@@ -289,5 +317,77 @@ describe('Queue', () => {
     await queue.run({});
 
     expect(order).toStrictEqual(['class', 'instance']);
+  });
+
+  test('default onError aborts the queue and logs to context logger', async () => {
+    const order: string[] = [];
+    const loggedErrors: Error[] = [];
+    let ended = false;
+
+    class FailingAction extends Action<QueueContext> {
+      async execute(): Promise<void> {
+        throw new Error('boom');
+      }
+    }
+
+    const runner = new QueueRunner();
+    const lockingContext = runner.preparteLockingContext();
+
+    const queue = new AsyncQueue({
+      actions: [
+        new FailingAction(),
+        anyAction(() => { order.push('after') }),
+      ],
+      name: 'TestQueue',
+      end: () => { ended = true; },
+      lockingContext,
+      logger,
+    });
+
+    await queue.run({
+      logger: {
+        error: (e: Error) => loggedErrors.push(e),
+      },
+    });
+
+    expect(order).toStrictEqual([]);
+    expect(loggedErrors).toHaveLength(1);
+    expect(ended).toBe(true);
+  });
+
+  test('custom onError can continue the queue', async () => {
+    const order: string[] = [];
+
+    class RecoverAction extends Action<QueueContext & { recovered?: boolean }> {
+      async execute(): Promise<void> {
+        throw new Error('recoverable');
+      }
+
+      async onError(_error: Error, context: QueueContext & { recovered?: boolean }): Promise<void> {
+        context.extend({ recovered: true });
+      }
+    }
+
+    const runner = new QueueRunner();
+    const lockingContext = runner.preparteLockingContext();
+
+    const queue = new AsyncQueue({
+      actions: [
+        new RecoverAction(),
+        anyAction<{ recovered?: boolean }>(({ recovered }) => {
+          if (recovered) {
+            order.push('after');
+          }
+        }),
+      ],
+      name: 'TestQueue',
+      end: () => {},
+      lockingContext,
+      logger,
+    });
+
+    await queue.run({});
+
+    expect(order).toStrictEqual(['after']);
   });
 });
